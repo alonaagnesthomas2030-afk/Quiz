@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Animal Protein & Health Quiz</title>
+<style>
+:root{--bg:#fff;--fg:#1d2b24;--card:#f3f7f4;--bd:#cfdcd3;--ac:#2e7d4f;--ok:#d9f2e1;--no:#fbdcdc;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14201a;--fg:#e8f0ea;--card:#1d2d24;--bd:#34503f;--ac:#5fc58a;--ok:#1f4a31;--no:#5a2626}}
+:root[data-theme="dark"]{--bg:#14201a;--fg:#e8f0ea;--card:#1d2d24;--bd:#34503f;--ac:#5fc58a;--ok:#1f4a31;--no:#5a2626}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:640px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.3rem;margin:0 0 4px}
+.sub{opacity:.75;margin:0 0 16px;font-size:.9rem}
+.bar{height:6px;background:var(--bd);border-radius:3px;margin-bottom:16px}
+.bar i{display:block;height:100%;background:var(--ac);border-radius:3px;transition:width .3s}
+.q{font-weight:600;margin:0 0 6px}
+.hint{font-size:.8rem;opacity:.7;margin:0 0 10px}
+button.o{display:block;width:100%;text-align:left;background:var(--card);color:var(--fg);border:1.5px solid var(--bd);border-radius:10px;padding:12px 14px;margin:8px 0;font:inherit;cursor:pointer}
+button.o.sel{border-color:var(--ac)}
+button.o.ok{background:var(--ok);border-color:var(--ac)}
+button.o.no{background:var(--no);border-color:#c44}
+button.p{background:var(--ac);color:#fff;border:0;border-radius:10px;padding:12px 20px;font:inherit;font-weight:600;margin-top:14px;cursor:pointer}
+button.p:disabled{opacity:.4}
+.fb{margin-top:12px;padding:10px 12px;border-radius:10px;background:var(--card);font-size:.92rem}
+.score{font-size:2.4rem;font-weight:700;color:var(--ac);margin:8px 0}
+</style></head><body><main id="app"></main>
+<script>
+const Q=[
+{q:"Which of the following is considered a complete protein source?",o:["Apple","Eggs","White rice","Potato"],a:[1]},
+{q:"How many essential amino acids does animal protein contain?",o:["8","12","9","6"],a:[2]},
+{q:"Approximately how much protein is present in 100 g of cooked chicken breast?",o:["45 g","20 g","12 g","31 g"],a:[3]},
+{q:"What is the recommended daily protein intake for most healthy adults according to the presentation?",o:["0.4 g per kg","1.5 g per kg","2.5 g per kg","0.8 g per kg"],a:[3]},
+{q:"Which of these nutrients are supplied by animal-based foods according to the presentation?",o:["Vitamin B12","Dietary fibre","Zinc","Iron"],a:[0,2,3],multi:1},
+{q:"Which type of meat is identified as the strongest dietary concern regarding colorectal cancer risk?",o:["Fresh chicken","Processed meat","Fresh fish","Eggs"],a:[1]},
+{q:"Plant-based protein foods can provide dietary fibre and antioxidants.",o:["True","False"],a:[0]},
+{q:"Which type of cholesterol can increase when saturated fat is consumed in excess?",o:["LDL cholesterol","HDL cholesterol","Dietary cholesterol only","All cholesterol equally"],a:[0]},
+{q:"A balanced plate should contain half protein, one-quarter vegetables and fruit, and one-quarter whole grains.",o:["True","False"],a:[1]},
+{q:"Which of these is recommended as a smarter animal-protein choice to eat more often?",o:["Sausages","Oily fish","Fried fatty meat","Bacon"],a:[1]}
+];
+let i=0,score=0,sel=[],done=false;
+const app=document.getElementById('app');
+const L=n=>String.fromCharCode(65+n);
+function render(){
+ if(i>=Q.length){
+  const p=Math.round(score/Q.length*100);
+  app.innerHTML=`<h1>Quiz complete</h1><div class="score">${score} / ${Q.length}</div><p>${p}% correct. ${p>=80?"Great work!":p>=50?"Good effort, review the slides and try again.":"Revisit the presentation and try again."}</p><button class="p" id="r">Retake quiz</button>`;
+  document.getElementById('r').onclick=()=>{i=0;score=0;sel=[];done=false;render()};return;}
+ const c=Q[i];
+ app.innerHTML=`<h1>Animal Protein &amp; Health Quiz</h1><p class="sub">Question ${i+1} of ${Q.length}</p><div class="bar"><i style="width:${i/Q.length*100}%"></i></div><p class="q">${c.q}</p>${c.multi?'<p class="hint">Select all that apply</p>':''}<div id="opts"></div><div id="fb"></div><button class="p" id="go" disabled>Check answer</button>`;
+ const box=document.getElementById('opts');
+ c.o.forEach((t,n)=>{const b=document.createElement('button');b.className='o';b.textContent=(c.o.length>2?L(n)+". ":"")+t;
+  b.onclick=()=>{if(done)return;
+   if(c.multi){sel=sel.includes(n)?sel.filter(x=>x!==n):[...sel,n]}else sel=[n];
+   [...box.children].forEach((x,k)=>x.classList.toggle('sel',sel.includes(k)));
+   document.getElementById('go').disabled=!sel.length};
+  box.appendChild(b)});
+ const go=document.getElementById('go');
+ go.onclick=()=>{
+  if(done){i++;sel=[];done=false;render();return}
+  done=true;
+  const ok=sel.length===c.a.length&&c.a.every(x=>sel.includes(x));
+  if(ok)score++;
+  [...box.children].forEach((x,k)=>{x.classList.remove('sel');if(c.a.includes(k))x.classList.add('ok');else if(sel.includes(k))x.classList.add('no')});
+  document.getElementById('fb').innerHTML=`<div class="fb">${ok?"Correct!":"Not quite. The correct answer is highlighted in green."}</div>`;
+  go.textContent=i===Q.length-1?"See score":"Next question";
+ };
+}
+render();
+</script></body></html>
